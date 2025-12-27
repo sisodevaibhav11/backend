@@ -51,12 +51,12 @@ const userSchema = new Schema({                               //defining user sc
     timestamps: true                                   //automatically manage createdAt and updatedAt fields
 });
 
-userSchema.pre("save", async function (next) {          ///middleware to hash password before saving
+userSchema.pre("save", async function () {          ///middleware to hash password before saving
     if (!this.isModified("password")) {                //if password is not modified, skip hashing
-        return next();
+        return ;
     }
     this.password = await bcrypt.hash(this.password, 10); //hashing password with salt rounds 10   ,hashing matlab tala uski chabi token hoti he then use krke usko access kr skte he
-    next();
+    
 });
 
 userSchema.methods.generateAccessToken = function () {   //method to generate JWT auth token
