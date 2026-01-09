@@ -57,7 +57,7 @@ userSchema.pre("save", async function () {          ///middleware to hash passwo
 
 userSchema.methods.generateAccessToken = function () {   //method to generate JWT auth token
     const token = jwt.sign(
-        { userId: this._id, username: this.username, email: this.email , fullName: this.fullName},
+        { _id: this._id, username: this.username, email: this.email , fullName: this.fullName},
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }                             //token expires in 1 hour
     );
@@ -66,7 +66,7 @@ userSchema.methods.generateAccessToken = function () {   //method to generate JW
 
 userSchema.methods.generateRefreshToken = function () {  //method to generate JWT refresh token
     const token = jwt.sign(
-        { userId: this._id, username: this.username },  
+        { _id: this._id, username: this.username },  
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }                            //refresh token expires in 7 days
     );

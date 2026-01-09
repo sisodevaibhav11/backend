@@ -197,7 +197,9 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 //controller for refresh access token
 const refreshAccessToken = asyncHandler(async (req, res) => {
+
   const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Refresh token not found, please login again");
   }
@@ -229,13 +231,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       sameSite: "strict"
     }
 
-    const { accessToken, newrefreshToken } = await generateAccessandRefreshTokens(user._id);      // Generating new access and refresh tokens
+    const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);      // Generating new access and refresh tokens
 
     return res.
       status(200).
       cookie("accessToken", accessToken, options).
-      cookie("refreshToken", newrefreshToken, options).
-      json(new ApiResponse(200, { accessToken, refreshToken: newrefreshToken }, "Access token refreshed successfully"));
+      cookie("refreshToken", refreshToken, options).
+      json(new ApiResponse(200, { accessToken, refreshToken }, "Access token refreshed successfully"));
 
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid refresh token, please login again");
@@ -247,8 +249,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 
   const { oldpassword, newpassword } = req.body;  // Extracting old and new passwords from the request body
-
-
+  
   const user = await User.findById(req.user?._id);   // Finding the user in the database by their ID
 
   if (!user) {
@@ -260,7 +261,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid old password");
   }
 
-  user.password = newPassword;
+  user.password = newpassword;
   await user.save({ validateBeforeSave: false });
 
   return res.
@@ -349,7 +350,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 );
 
 //get user channel profile
-const getUserChannelProfile = async (req, res) => {
+const getUserChannelProfile = asyncHandler (async(req, res) => {
   const { username } = req.params;
 
   if (!username) {
@@ -412,13 +413,13 @@ const getUserChannelProfile = async (req, res) => {
     throw new ApiError(404, "channel does not exist");
   }
 
-  res.ApiResponse
+  return res
     .status(200)
     .json(200, channel[0], "user channel fetched succesfully");
-};
+});
 
 //get watch history
-const getWatchHistory = async (req, res) => {
+const getWatchHistory = asyncHandler(async (req, res) => {
   const userId = req.user._id;                  //here id automatically convert  <objectId("achsdjsd")>
 
   const history = await User.aggregate([
@@ -472,7 +473,7 @@ const getWatchHistory = async (req, res) => {
   ]);
 
   res.status(200).json(history);
-};
+});
 
 export {
   registerUser,
