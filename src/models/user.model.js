@@ -29,15 +29,11 @@ const userSchema = new Schema({                               //defining user sc
         type: String,
         default: null
     },
-    password: {
-        type: String,//cloudinary url
-        required: true
-    },
     coverImage: {
         type: String,//cloudinary url
     },
     watchHistory: [{
-        type: [Schema.Types.ObjectId],
+        type: Schema.Types.ObjectId,
         ref: "Video"
     }],
     password: {

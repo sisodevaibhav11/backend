@@ -5,9 +5,8 @@ const storage = multer.diskStorage({                                          //
         cb(null, "./public/temp");
     },
     filename: function (req, file, cb) {                                     //specify the file name
-        cb(null, file.originalname)                                    //file.fieldname is the name of the field in the form 
+        cb(null, `${Date.now()}-${file.originalname}`)                                    //file.fieldname is the name of the field in the form 
     }   
 });
 
-const upload = multer({ storage: storage});                //initialize multer with the storage configuration
-export { upload };
+export const upload = multer({ storage });
