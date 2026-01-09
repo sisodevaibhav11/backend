@@ -352,9 +352,8 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 const getUserChannelProfile = async (req, res) => {
   const { username } = req.params;
 
-  if(!username)
-  {
-    throw new ApiError(400,"username is missing");
+  if (!username) {
+    throw new ApiError(400, "username is missing");
   }
 
 
@@ -390,9 +389,9 @@ const getUserChannelProfile = async (req, res) => {
             then: true,
             else: false
           }
-        } 
+        }
       }
-    }, 
+    },
     {
       $project: {
         fullName: 1,
@@ -401,8 +400,8 @@ const getUserChannelProfile = async (req, res) => {
         subscribersCount: 1,
         subscribedToCount: 1,
         isSubscribed: 1,
-        email:1,
-        coverImage:1
+        email: 1,
+        coverImage: 1
       }
     }
   ]);
@@ -410,14 +409,70 @@ const getUserChannelProfile = async (req, res) => {
   console.log(channel);
 
   if (!channel?.length) {
-    throw new ApiError(404,"channel does not exist");
+    throw new ApiError(404, "channel does not exist");
   }
 
   res.ApiResponse
-  .status(200)
-  .json(200,channel[0],"user channel fetched succesfully");
+    .status(200)
+    .json(200, channel[0], "user channel fetched succesfully");
 };
 
+//get watch history
+const getWatchHistory = async (req, res) => {
+  const userId = req.user._id;                  //here id automatically convert  <objectId("achsdjsd")>
+
+  const history = await User.aggregate([
+    {
+      $match: { _id: userId }                   //here object id in form of <objectId("achsdjsd")>
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory"
+      }
+    },
+    {
+      $unwind: "$watchHistory"
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "watchHistory.owner",
+        foreignField: "_id",
+        as: "watchHistory.owner"
+      }
+    },
+    {
+      $unwind: "$watchHistory.owner"
+    },
+    {
+      $sort: {
+        "watchHistory.createdAt": -1
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        watchHistory: {
+          _id: 1,
+          title: 1,
+          thumbnail: 1,
+          duration: 1,
+          views: 1,
+          createdAt: 1,
+          owner: {
+            username: "$watchHistory.owner.username",
+            avatar: "$watchHistory.owner.avatar"
+          }
+        }
+      }
+    }
+  ]);
+
+  res.status(200).json(history);
+};
 
 export {
   registerUser,
@@ -429,7 +484,8 @@ export {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
-  getUserChannelProfile
-}; 
+  getUserChannelProfile,
+  getWatchHistory
+};
 
 
