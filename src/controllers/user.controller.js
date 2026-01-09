@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js";               // Importing the 
 import { User } from "../models/user.model.js";               // Importing the User model for database operations
 import { uploadOnCloudinary } from "../utils/cloudinary.js";               // Importing the Cloudinary upload utility
 import ApiResponse from "../utils/ApiResponse.js";               // Importing the ApiResponse utility for standardized responses  
-
+import jwt from "jsonwebtoken";               // Importing the jsonwebtoken library for token generation and verification
 
 // Function to generate access and refresh tokens
 const generateAccessandRefreshTokens = async (userId) => {
@@ -181,7 +181,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       { new: true }
     );
   }
-  
+
   //clear cookies
   const options = {
     httpOnly: true,
@@ -190,17 +190,60 @@ const logoutUser = asyncHandler(async (req, res) => {
   }
   return res.
     status(200).
-    clearCookie("accessToken",options).
-    clearCookie("refreshToken",options).
+    clearCookie("accessToken", options).
+    clearCookie("refreshToken", options).
     json(new ApiResponse(200, {}, "User logged out successfully"));               // Sending a success response for logout  
 });
 
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Refresh token not found, please login again");
+  }
 
 
+
+  try {
+    //verify token
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );               // Verifying the incoming refresh token
+
+
+    //find user in db
+    const user = await User.findById(decodedToken?._id);
+    if (!user) {
+      throw new ApiError(404, "invalid resfresh token, user not found");
+    }
+
+    //match refresh token
+    if (user?.refreshToken !== incomingRefreshToken) {
+      throw new ApiError(401, "refresh token mismatch, please login again");
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict"
+    }
+
+    const { accessToken, newrefreshToken } = await generateAccessandRefreshTokens(user._id);      // Generating new access and refresh tokens
+
+    return res.
+      status(200).
+      cookie("accessToken", accessToken, options).
+      cookie("refreshToken", newrefreshToken, options).
+      json(new ApiResponse(200, { accessToken, refreshToken: newrefreshToken }, "Access token refreshed successfully"));
+
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token, please login again");
+  }
+});
 
 export {
-  registerUser, loginUser, logoutUser
+  registerUser, loginUser, logoutUser, refreshAccessToken
 };              // Exporting the registerUser controller
 
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser,logoutUser,registerUser } from "../controllers/user.controller.js";               // Importing the registerUser controller
+import { loginUser,logoutUser,registerUser,refreshAccessToken } from "../controllers/user.controller.js";               // Importing the registerUser controller
 import {upload} from   "../middlewares/multer.middleware.js";      // Importing the multer middleware for file uploads
 import  {verifyJWT}  from "../middlewares/auth.middleware.js";
 const router = Router();
@@ -20,6 +20,8 @@ router.route("/login").post(loginUser);               // Handling POST requests 
 //secure routes can be added here
 router.route("/logout").post(logoutUser);               // Handling POST requests with logoutUser controller 
 
+// Route for refreshing access token
+router.route("/refresh-token").post(refreshAccessToken);               // Handling POST requests with logoutUser controller
 
 
 
