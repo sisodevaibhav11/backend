@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";               // Import
 import { ApiError } from "../utils/ApiError.js";               // Importing the ApiError utility for error handling
 import { User } from "../models/user.model.js";               // Importing the User model for database operations
 import { uploadOnCloudinary } from "../utils/cloudinary.js";               // Importing the Cloudinary upload utility
-import ApiResponse from "../utils/ApiResponse.js";               // Importing the ApiResponse utility for standardized responses  
+import {ApiResponse} from "../utils/ApiResponse.js";               // Importing the ApiResponse utility for standardized responses  
 import jwt from "jsonwebtoken";               // Importing the jsonwebtoken library for token generation and verification
 
 // Function to generate access and refresh tokens
